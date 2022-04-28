@@ -1,0 +1,24 @@
+{
+  "dependencies": {
+    "body-parse": "^0.1.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.0",
+    "nodemon": "^2.0.15"
+  },
+  "scripts": {
+    "start": "nodemon index.ts"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.12",
+    "@types/express": "^4.17.13",
+    "ts-node-dev": "^1.1.8",
+    "typescript": "^4.6.3"
+  },
+  "name": "node_mono",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/saifali96/node_mono.git",
+  "author": "Saif Ali <Saifincreation@gmail.com>",
+  "license": "MIT",
+  "private": true
+}
