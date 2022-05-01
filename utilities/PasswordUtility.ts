@@ -1,16 +1,16 @@
 import bcrypt from "bcrypt";
 
-export const GenerateSalt = async () => {
+const GenerateSalt = async () => {
 	
 	return await bcrypt.genSalt();
 }
 
-export const GeneratePassword = async (password: string, salt: string) => {
+export const GeneratePassword = async (password: string) => {
 	
-	return await bcrypt.hash(password, salt);
+	return await bcrypt.hash(password, await GenerateSalt());
 }
 
-export const validatePassword = async (givenPassword: string, savedPassword: string, salt: string) => {
+export const validatePassword = async (givenPassword: string, savedPassword: string) => {
 
-	return await GeneratePassword(givenPassword, salt) === savedPassword;
+	return await bcrypt.compare(givenPassword, savedPassword);
 }

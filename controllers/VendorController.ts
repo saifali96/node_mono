@@ -13,7 +13,7 @@ export const VendorLogin = async (req: Request, res: Response, next: NextFunctio
 
 		// Check password and authenticate
 
-		const isValidPassword = await validatePassword(password, isVendorExisting.password, isVendorExisting.salt);
+		const isValidPassword = await validatePassword(password, isVendorExisting.password);
 
 		if (isValidPassword) {
 			return res.json(isVendorExisting);

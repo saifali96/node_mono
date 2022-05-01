@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
 interface VendorDoc extends Document {
 
@@ -10,7 +10,6 @@ interface VendorDoc extends Document {
 	phone: string;
 	email: string;
 	password: string;
-	salt: string;
 	serviceAvailability: boolean;
 	coverImages: [string];
 	rating: number;
@@ -25,9 +24,8 @@ const VendorSchema = new Schema({
 	pincode: { type: String, required: true },
 	address: { type: String },
 	phone: { type: String, required: true },
-	email: { type: String, required: true },
+	email: { type: String, required: true, unique: true },
 	password: { type: String, required: true },
-	salt: { type: String, required: true },
 	serviceAvailability: { type: Boolean },
 	coverImages: { type: [String] },
 	rating: { type: Number },
@@ -39,7 +37,6 @@ const VendorSchema = new Schema({
 	toJSON: {
 		transform(doc, ret){
 			delete ret.password;
-			delete ret.salt;
 			delete ret.__v;
 			delete ret.createdAt;
 			delete ret.updatedAt;

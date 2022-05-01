@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { CreateVendorInput } from "../dto";
 import { Vendor } from "../models";
-import { GeneratePassword, GenerateSalt } from "../utilities";
+import { GeneratePassword } from "../utilities";
 
 export const FindVendor = async (id: string | undefined, email?: string) => {
 	
@@ -17,11 +17,10 @@ export const CreateVendor = async (req: Request, res: Response, next: NextFuncti
 		return res.json({ message: "Vendor exists already."});
 	}
 
-	const salt = await GenerateSalt();
-	const userPassword = await GeneratePassword(password, salt);
+	const userPassword = await GeneratePassword(password);
 
 	const createVendor = await Vendor.create({
-		name, address, pincode, foodType, email, salt, ownerName, phone,
+		name, address, pincode, foodType, email, ownerName, phone,
 		password: userPassword,
 		rating: 0,
 		coverImages: []
