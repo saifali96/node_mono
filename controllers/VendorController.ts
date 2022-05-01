@@ -20,5 +20,5 @@ export const VendorLogin = async (req: Request, res: Response, next: NextFunctio
 		}
 	}
 
-	return res.json({ message: "User does not exist." });
+	return res.status(401).json({ message: "User does not exist." });
 }

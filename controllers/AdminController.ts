@@ -14,7 +14,7 @@ export const CreateVendor = async (req: Request, res: Response, next: NextFuncti
 	const isVendorExisting = await FindVendor('', email);
 	
 	if (isVendorExisting !== null) {
-		return res.json({ message: "Vendor exists already."});
+		return res.status(400).json({ message: "Vendor exists already."});
 	}
 
 	const userPassword = await GeneratePassword(password);
@@ -37,7 +37,7 @@ export const GetVendors = async (req: Request, res: Response, next: NextFunction
 		return res.json({vendors});
 	}
 
-	return res.json({ message: "Vendors not found." });
+	return res.status(400).json({ message: "Vendors not found." });
 	
 }
 export const GetVendorByID = async (req: Request, res: Response, next: NextFunction ) => {
@@ -48,5 +48,5 @@ export const GetVendorByID = async (req: Request, res: Response, next: NextFunct
 		return res.json(vendor);
 	}
 
-	return res.json({ message: "Vendor not found." });
+	return res.status(400).json({ message: "Vendor not found." });
 }
