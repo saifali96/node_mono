@@ -26,7 +26,7 @@ export const CreateVendor = async (req: Request, res: Response, next: NextFuncti
 		coverImages: []
 	});
 	
-	res.json(createVendor);
+	return res.json(createVendor);
 }
 
 export const GetVendors = async (req: Request, res: Response, next: NextFunction ) => {
