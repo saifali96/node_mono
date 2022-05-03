@@ -32,6 +32,8 @@ export const ValidateSignature = async (req: Request) => {
 	if (signature) {
 	
 		const payload = await jwt.verify(signature, JWT_SECRET) as AuthPayload;
+
+		// TODO : Handle expired JWT tokens
 		req.user = payload;
 		return true
 	}

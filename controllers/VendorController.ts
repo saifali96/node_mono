@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { EditVendorInputs, VendorLoginInputs } from "../dto";
+import { CreateFoodInputs } from "../dto/Food.dto";
+import { Food, Vendor } from "../models";
 import { GenerateSignature, validatePassword } from "../utilities";
 import { FindVendor } from "./AdminController";
 
@@ -90,5 +92,58 @@ export const UpdateVendorService = async (req: Request, res: Response, next: Nex
 	}
 
 	return res.status(400).json({ success: false, message: "Vendor profile not found." });
+	
+}
+
+export const AddFood = async (req: Request, res: Response, next: NextFunction) => {
+
+	const user = req.user;
+
+	if (user) {
+
+		const { name, description, category, foodType, readyTime, price } = <CreateFoodInputs>req.body;
+		const vendor = await FindVendor(user._id);
+
+		if(vendor !== null) {
+			
+			const createdFood = await Food.create({
+				vendorID: vendor._id,
+				name,
+				description,
+				category,
+				foodType,
+				images: ["demo.jpg"],
+				readyTime,
+				price,
+				rating: 0
+			});
+
+			vendor.foods.push(createdFood);
+			const result = await vendor.save();
+
+			return res.json(result);
+		}
+		
+	}
+
+	return res.status(400).json({ success: false, message: "Could not add food." });
+	
+}
+export const GetFoods = async (req: Request, res: Response, next: NextFunction) => {
+
+	const user = req.user;
+
+	if (user) {
+
+		const foods = await Food.find({ vendorID: user._id });
+
+		if (foods !== null) {
+			
+			return res.json(foods);
+		}
+		 
+	}
+
+	return res.status(400).json({ success: false, message: "Could not fetch foods." });
 	
 }
