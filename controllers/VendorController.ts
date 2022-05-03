@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { EditVendorInputs, VendorLoginInputs } from "../dto";
 import { CreateFoodInputs } from "../dto/Food.dto";
-import { Food, Vendor } from "../models";
+import { Food } from "../models";
 import { GenerateSignature, validatePassword } from "../utilities";
 import { FindVendor } from "./AdminController";
 
@@ -106,13 +106,17 @@ export const AddFood = async (req: Request, res: Response, next: NextFunction) =
 
 		if(vendor !== null) {
 			
+			const files = req.files as [Express.Multer.File];
+
+			const images = files.map((file: Express.Multer.File) => file.filename);
+
 			const createdFood = await Food.create({
 				vendorID: vendor._id,
 				name,
 				description,
 				category,
 				foodType,
-				images: ["demo.jpg"],
+				images,
 				readyTime,
 				price,
 				rating: 0
