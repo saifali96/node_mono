@@ -9,7 +9,7 @@ export const FindVendor = async (id: string | undefined, email?: string) => {
 }
 
 export const CreateVendor = async (req: Request, res: Response, next: NextFunction ) => {
-	const { name, address, pincode, foodType, email, password, ownerName, phone } = <CreateVendorInput>req.body;
+	const { name, address, zipcode, foodType, email, password, ownerName, phone } = <CreateVendorInput>req.body;
 
 	const isVendorExisting = await FindVendor('', email);
 	
@@ -20,7 +20,7 @@ export const CreateVendor = async (req: Request, res: Response, next: NextFuncti
 	const userPassword = await GeneratePassword(password);
 
 	const createVendor = await Vendor.create({
-		name, address, pincode, foodType, email, ownerName, phone,
+		name, address, zipcode, foodType, email, ownerName, phone,
 		password: userPassword,
 		rating: 0,
 		coverImages: [],

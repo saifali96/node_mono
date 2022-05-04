@@ -2,7 +2,7 @@ export interface CreateVendorInput {
 	name: string;
 	ownerName: string;
 	foodType: [string];
-	pincode: string;
+	zipcode: string;
 	address: string;
 	phone: string;
 	email: string;

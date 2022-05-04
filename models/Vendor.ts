@@ -5,7 +5,7 @@ interface VendorDoc extends Document {
 	name: string;
 	ownerName: string;
 	foodType: [string];
-	pincode: string;
+	zipcode: string;
 	address: string;
 	phone: string;
 	email: string;
@@ -21,7 +21,7 @@ const VendorSchema = new Schema({
 	name: { type: String, required: true },
 	ownerName: { type: String, required: true} ,
 	foodType: { type: [String] },
-	pincode: { type: String, required: true },
+	zipcode: { type: String, required: true },
 	address: { type: String },
 	phone: { type: String, required: true },
 	email: { type: String, required: true, unique: true },
