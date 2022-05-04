@@ -159,6 +159,7 @@ export const AddFood = async (req: Request, res: Response, next: NextFunction) =
 	return res.status(400).json({ success: false, message: "Could not add food." });
 	
 }
+
 export const GetFoods = async (req: Request, res: Response, next: NextFunction) => {
 
 	const user = req.user;

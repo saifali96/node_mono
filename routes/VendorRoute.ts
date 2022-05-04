@@ -24,7 +24,7 @@ router.get('/', (req: Request, res: Response, next: NextFunction) => {
 
 router.post("/login", VendorLogin);
 
-// Below are only authenticated r
+// Below are only authenticated routes
 router.use(Authenticate)
 router.get("/profile", GetVendorProfile);
 router.patch("/profile", UpdateVendorProfile);
@@ -33,10 +33,5 @@ router.patch("/service", UpdateVendorService);
 
 router.post("/food", images, AddFood);
 router.get("/food", GetFoods);
-
-router.get('/', (req: Request, res: Response, next: NextFunction) => {
-	
-	return res.json({ message: "Hello from Vendor."});
-});
 
 export { router as VendorRoute };
