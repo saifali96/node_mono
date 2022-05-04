@@ -14,6 +14,8 @@ export default async () => {
 	  
 	  const db = mongoose.connection;
 	  
+	  console.clear();
+
 	  db.on('connecting', () => {
 		console.info('Connecting to MongoDB...');
 	  });
