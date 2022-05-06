@@ -16,11 +16,11 @@ export const CustomerSignUp = async (req: Request, res: Response, next: NextFunc
 
 	const { email, phone, password } = customerInputs;
 
-	// const isCustomerExisting = await FindCustomer('', email);
+	const isCustomerExisting = await Customer.findOne({ email });
 	
-	// if (isCustomerExisting !== null) {
-	// 	return res.status(400).json({ message: "Customer exists already."});
-	// }
+	if (isCustomerExisting !== null) {
+		return res.status(400).json({ message: "Customer exists already."});
+	}
 
 	const userPassword = await GeneratePassword(password);
 	
