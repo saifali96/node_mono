@@ -1,4 +1,4 @@
-import { TWILIO_ACCT_SID, TWILIO_AUTH_TOKEN } from "../config";
+import { TWILIO_ACCT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER } from "../config";
 
 // Email
 
@@ -15,14 +15,12 @@ export const GenerateOtp = () => {
 }
 
 export const onRequestOTP = async (otp: number, to: string) => {
-
-	// TODO - Add Twilio API integration
 	
 	// const twilioClient = require("twilio")(TWILIO_ACCT_SID, TWILIO_AUTH_TOKEN);
 
 	// const response = await twilioClient.messages.create({
 	// 	body: `Your OTP is ${otp}`,
-	// 	from: '',
+	// 	from: `${TWILIO_FROM_NUMBER}`,
 	// 	to
 	// });
 
