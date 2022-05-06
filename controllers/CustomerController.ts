@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
 import { plainToClass } from "class-transformer";
-import { CreateCustomerInputs, UserLoginInputs } from "../dto/Customer.dto";
+import { CreateCustomerInputs, EditCustomerProfileInputs, UserLoginInputs } from "../dto/Customer.dto";
 import { validate } from "class-validator";
 import { GenerateOtp, GeneratePassword, GenerateSignature, onRequestOTP, validatePassword } from "../utilities";
 import { Customer } from "../models/Customer";
@@ -24,7 +24,7 @@ export const CustomerSignUp = async (req: Request, res: Response, next: NextFunc
 
 	const userPassword = await GeneratePassword(password);
 	
-	const {otp, expiry } = GenerateOtp();
+	const { otp, expiry } = GenerateOtp();
 
 	const result = await Customer.create({
 		email,
@@ -125,12 +125,77 @@ export const CustomerVerify = async (req: Request, res: Response, next: NextFunc
 
 export const RequestOTP = async (req: Request, res: Response, next: NextFunction) => {
 
+	const customer = req.user;
+
+	if(customer) {
+		
+		const customerProfile = await Customer.findById(customer._id);
+
+		if(customerProfile) {
+			
+			const { otp, expiry } = GenerateOtp();
+			customerProfile.otp = otp;
+			customerProfile.otp_expiry = expiry;
+
+			await customerProfile.save();
+			await onRequestOTP(otp, customerProfile.phone);
+
+			return res.status(201).json({ success: true, message: "Your OTP has been sent to your phone." });
+		}
+	}
+
+	return res.status(401).json({ success: false, message: "Failed to request OTP." });
+
 }
 
 export const GetCustomerProfile = async (req: Request, res: Response, next: NextFunction) => {
 
+	const customer = req.user;
+
+	if (customer) {
+				
+		const customerProfile = await Customer.findById(customer._id);
+
+		if(customerProfile) {
+
+			return res.status(201).json({ success: true, message: customerProfile });
+		}
+	}
+
+	return res.status(401).json({ success: false, message: "Failed to fetch customer profile." });
 }
 
 export const EditCustomerProfile = async (req: Request, res: Response, next: NextFunction) => {
+
+	const customer = req.user;
+
+	const profileInputs = plainToClass(EditCustomerProfileInputs, req.body);
+
+	const profileErrors = await validate(profileInputs, { validationError: { target: false }});
+
+	if (profileErrors.length > 0) {
+
+		return res.status(401).json(profileErrors);
+	}
+
+	const { firstName, lastName, address } = profileInputs;
+
+	if (customer) {
+				
+		const customerProfile = await Customer.findById(customer._id);
+
+		if(customerProfile) {
+			
+			customerProfile.firstName = firstName;
+			customerProfile.lastName = lastName;
+			customerProfile.address = address;
+
+			const result = await customerProfile.save();
+
+			return res.status(201).json({ success: true, message: result });
+		}
+	}
+
+	return res.status(401).json({ success: false, message: "Failed to edit customer profile." });
 
 }
