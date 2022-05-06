@@ -1,5 +1,6 @@
-import express, {Request, Response, NextFunction } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { CustomerLogin, CustomerSignUp, CustomerVerify, EditCustomerProfile, GetCustomerProfile, RequestOTP } from "../controllers";
+import { Authenticate } from "../middlewares";
 
 const router = express.Router();
 
@@ -13,6 +14,9 @@ router.post("/signup", CustomerSignUp);
 
 // Login
 router.post("/login", CustomerLogin);
+
+// Authenticate below routes
+router.use(Authenticate);
 
 // Verify Customer Account
 router.patch("/verify", CustomerVerify);

@@ -55,6 +55,8 @@ export const CustomerSignUp = async (req: Request, res: Response, next: NextFunc
 		// Send the result to client
 		return res.status(201).json({ success: true, message: { signature, verified: result.verified, email: result.email }});
 	}
+
+	return res.status(401).json({ success: false, message: "Failed to signup user." });
 }
 
 export const CustomerLogin = async (req: Request, res: Response, next: NextFunction) => {
@@ -63,6 +65,32 @@ export const CustomerLogin = async (req: Request, res: Response, next: NextFunct
 
 export const CustomerVerify = async (req: Request, res: Response, next: NextFunction) => {
 
+	const { otp } = req.body;
+
+	const user = req.user;
+
+	if(user) {
+		const profile = await Customer.findById(user._id);
+
+		if(profile) {
+			if(profile.otp === parseInt(otp) && profile.otp_expiry >= new Date()) {
+				
+				profile.verified = true;
+
+				const updateProfile = await profile.save();
+
+				const signature = await GenerateSignature({
+					_id: updateProfile._id,
+					email: updateProfile.email,
+					verified: updateProfile.verified
+				});
+
+				return res.status(201).json({ success: true, message: { signature, verified: updateProfile.verified, email: updateProfile.email }});
+			}
+		}
+	}
+
+	return res.status(401).json({ success: false, message: "Failed to verify user." });
 }
 
 
