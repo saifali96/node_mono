@@ -38,6 +38,6 @@ router.patch("/profile", EditCustomerProfile);
 // Order
 router.post("/create-order", CreateOrder);
 router.get("/orders", GetOrders);
-router.get("orders/:id", GetOrderById);
+router.get("/orders/:id", GetOrderById);
 
 export { router as CustomerRoute };

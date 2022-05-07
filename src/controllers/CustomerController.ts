@@ -252,6 +252,7 @@ export const CreateOrder = async (req: Request, res: Response, next: NextFunctio
 			// Create Order
 			const currentOrder = await Order.create({
 				orderID,
+				orderedBy: customer._id,
 				items: cartItems,
 				totalAmount: netAmount,
 				orderDate: new Date(),
@@ -278,9 +279,34 @@ export const CreateOrder = async (req: Request, res: Response, next: NextFunctio
 
 export const GetOrders = async (req: Request, res: Response, next: NextFunction) => {
 
+	const customer = req.user;
+
+	if(customer) {
+
+		const profile = await Customer.findById(customer._id).populate("orders");
+
+		if(profile) {
+			return res.status(201).json({ success: true, message: profile.orders });
+		}
+	}
+
+	return res.status(401).json({ success: false, message: "Failed to get orders." });
 }
 
 export const GetOrderById = async (req: Request, res: Response, next: NextFunction) => {
 
+	const orderID = req.params.id;
+	const customer = req.user;
+
+	if(customer && orderID) {
+
+		const order = await Order.findById(orderID).populate("items.food");
+
+		if(order?.orderedBy == customer._id) {
+			return res.status(201).json({ success: true, message: order });
+		}
+	}
+
+	return res.status(401).json({ success: false, message: "Failed to get order." });
 }
 
