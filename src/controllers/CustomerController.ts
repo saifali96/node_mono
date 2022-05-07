@@ -203,6 +203,102 @@ export const EditCustomerProfile = async (req: Request, res: Response, next: Nex
 
 }
 
+export const AddToCart = async (req: Request, res: Response, next: NextFunction) => {
+
+	const customer = req.user;
+
+	if(customer) {
+
+		const profile = await Customer.findById(customer._id).populate("cart.food");
+		let cartItems = Array();
+
+		const { _id, unit } = <OrderInputs>req.body;
+		const food = await Food.findById(_id);
+
+		if(food && profile) {
+			cartItems = profile.cart;
+
+			if(cartItems.length > 0) {
+				// check add update unit
+				let existingFoodItems = cartItems.filter((item) => item.food._id.toString() === _id);
+
+				if(existingFoodItems.length > 0) {
+					
+					const index = cartItems.indexOf(existingFoodItems[0]);
+					if(unit > 0) {
+						cartItems[index] = { food, unit };
+					} else {
+						cartItems.splice(index, 1);
+					}
+				} else {
+					cartItems.push({ food, unit });
+				}
+				
+			} else {
+				//  add new items to cart
+				cartItems.push({ food, unit });
+			}
+
+			if(cartItems) {
+				profile.cart = cartItems as any;
+				const cartResult = await profile.save();
+
+				if(cartResult) {
+					return res.status(201).json({ success: true, message: cartResult.cart });
+				}
+			}
+		}
+
+	}
+	return res.status(401).json({ success: false, message: "Failed to create a cart." });
+
+}
+
+export const GetCart = async (req: Request, res: Response, next: NextFunction) => {
+
+	const customer = req.user;
+
+	if(customer) {
+		
+		const profile = await Customer.findById(customer._id).populate("cart.food");
+
+		if(profile) {
+
+			return res.status(201).json({ success: true, message: profile.cart });
+
+		}
+	}
+
+	return res.status(401).json({ success: false, message: "Failed to get cart." });
+
+}
+
+export const DeleteCart = async (req: Request, res: Response, next: NextFunction) => {
+
+	const customer = req.user;
+
+	if(customer) {
+
+		const profile = await Customer.findById(customer._id).populate("cart.food");
+
+		if(profile) {
+			if(isEmptyArray(profile.cart)){
+				return res.status(201).json({ success: true, message: profile });
+			}
+			profile.cart = [] as any;
+			const cartResult = await profile.save();
+
+			return res.status(201).json({ success: true, message: cartResult });
+
+		}
+	}
+
+	return res.status(401).json({ success: false, message: "Failed to delete cart." });
+
+}
+
+
+
 export const CreateOrder = async (req: Request, res: Response, next: NextFunction) => {
 
 	// Get current logged in user

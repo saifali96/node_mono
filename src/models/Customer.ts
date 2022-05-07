@@ -15,6 +15,7 @@ interface CustomerDoc extends Document {
 	lat: number;
 	lng: number;
 	orders: [OrderDoc];
+	cart: [any]; 		// TODO - extract to a separate schema?
 
 }
 
@@ -35,6 +36,12 @@ const CustomerSchema = new Schema({
 		{
 			type: Schema.Types.ObjectId,
 			ref: "order"
+		}
+	],
+	cart: [
+		{
+			food: { type: Schema.Types.ObjectId, ref: "food", required: true },
+			unit: { type: Number, required: true }
 		}
 	]
 }, {
