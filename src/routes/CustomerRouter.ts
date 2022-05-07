@@ -32,14 +32,12 @@ router.get("/profile", GetCustomerProfile);
 router.patch("/profile", EditCustomerProfile);
 
 
-// TODO - Cart & Payments
-
 // Cart
 router.post("/cart", AddToCart);
 router.get("/cart", GetCart);
 router.delete("/cart", DeleteCart);
 
-
+// TODO -  Payments
 
 // Payments
 
