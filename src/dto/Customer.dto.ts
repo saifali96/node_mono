@@ -1,4 +1,4 @@
-import { isEmail, IsEmail, isEmpty, IsEmpty, Length } from "class-validator";
+import { IsArray, IsEmail, IsInt, Length, Max, Min, ValidateNested } from "class-validator";
 
 export class CreateCustomerInputs {
 
@@ -36,7 +36,19 @@ export class EditCustomerProfileInputs {
 }
 
 export interface CustomerPayload {
+
 	_id: string;
 	email: string;
 	verified: boolean;
+}
+
+export class OrderInputs {
+	
+	@Length(24)
+	_id: string;
+
+	@IsInt()
+  	@Min(1)
+	@Max(10)
+	unit: number;
 }
