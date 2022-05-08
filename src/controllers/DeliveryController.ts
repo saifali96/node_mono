@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { plainToClass } from "class-transformer";
-import { CreateDeliveryUserInputs, UserLoginInputs } from "../dto/Customer.dto";
+import { CreateDeliveryUserInputs, EditDeliveryUserInputs, UserLoginInputs } from "../dto/Customer.dto";
 import { validate } from "class-validator";
 import { GeneratePassword, GenerateSignature, validatePassword } from "../utilities";
 import { DeliveryUser } from "../models";
@@ -11,7 +11,7 @@ export const DeliveryUserSignUp = async (req: Request, res: Response, next: Next
 	const inputErrors = await validate(deliveryUserInputs, { validationError: { target: true }});
 
 	if(inputErrors.length > 0) {
-		return res.status(400).json(inputErrors);
+		return res.status(400).json({ success: false, message: inputErrors });
 	}
 
 	const { email, phone, password, address, firstName, lastName, zipcode } = deliveryUserInputs;
@@ -65,7 +65,7 @@ export const DeliveryUserLogin = async (req: Request, res: Response, next: NextF
 
 	if (loginErrors.length > 0) {
 
-		return res.status(400).json(loginErrors);
+		return res.status(400).json({ success: false, message: loginErrors });
 	}
 
 	const { email, password } = loginInputs;
@@ -93,58 +93,108 @@ export const DeliveryUserLogin = async (req: Request, res: Response, next: NextF
 
 export const GetDeliveryUserProfile = async (req: Request, res: Response, next: NextFunction) => {
 
-	// const customer = req.user;
+	const deliveryUser = req.user;
 
-	// if (customer) {
+	if (deliveryUser) {
 				
-	// 	const customerProfile = await Customer.findById(customer._id);
+		const deliveryUserProfile = await DeliveryUser.findById(deliveryUser._id);
 
-	// 	if(customerProfile) {
+		if(deliveryUserProfile) {
 
-	// 		return res.status(200).json({ success: true, message: customerProfile });
-	// 	}
-	// }
+			return res.status(200).json({ success: true, message: deliveryUserProfile });
+		}
+	}
 
-	// return res.status(400).json({ success: false, message: "Failed to fetch customer profile." });
+	return res.status(400).json({ success: false, message: "Failed to fetch delivery user profile." });
 }
 
 export const EditDeliveryUserProfile = async (req: Request, res: Response, next: NextFunction) => {
 
-	// const customer = req.user;
+	const deliveryUser = req.user;
 
-	// const profileInputs = plainToClass(EditCustomerProfileInputs, req.body);
+	const profileInputs = plainToClass(EditDeliveryUserInputs, req.body);
 
-	// const profileErrors = await validate(profileInputs, { validationError: { target: false }});
+	const profileErrors = await validate(profileInputs, { validationError: { target: false }});
 
-	// if (profileErrors.length > 0) {
+	if (profileErrors.length > 0) {
 
-	// 	return res.status(400).json(profileErrors);
-	// }
+		return res.status(400).json(profileErrors);
+	}
 
-	// const { firstName, lastName, address } = profileInputs;
+	const { firstName, lastName, address, zipcode } = profileInputs;
 
-	// if (customer) {
+	if (deliveryUser) {
 				
-	// 	const customerProfile = await Customer.findById(customer._id);
+		const deliveryUserProfile = await DeliveryUser.findById(deliveryUser._id);
 
-	// 	if(customerProfile) {
+		if(deliveryUserProfile) {
 			
-	// 		customerProfile.firstName = firstName;
-	// 		customerProfile.lastName = lastName;
-	// 		customerProfile.address = address;
+			deliveryUserProfile.firstName = firstName;
+			deliveryUserProfile.lastName = lastName;
+			deliveryUserProfile.address = address;
+			deliveryUserProfile.zipcode = zipcode;
 
-	// 		const result = await customerProfile.save();
+			const result = await deliveryUserProfile.save();
 
-	// 		return res.status(200).json({ success: true, message: result });
-	// 	}
-	// }
+			if(result) {
+				return res.status(200).json({ success: true, message: result });
+			}
+		}
+	}
 
-	// return res.status(400).json({ success: false, message: "Failed to edit customer profile." });
+	return res.status(400).json({ success: false, message: "Failed to edit delivery profile." });
 
 }
 
 export const UpdateDeliveryUserStatus = async (req: Request, res: Response, next: NextFunction) => {
+
+	const deliveryUser = req.user;
+
+	if(deliveryUser) {
+
+		const profile = await DeliveryUser.findById(deliveryUser._id);
+
+		if(profile) {
+			
+			profile.isAvailable = !profile.isAvailable;
+			const result = await profile.save();
+
+			if(result){
+				return res.status(200).json({ success: true, message: result });
+			}
+		}
+
+	}
+
+	return res.status(400).json({ success: false, message: "Failed to update delivery user status." });
+
 }
 
 export const UpdateDeliveryUserGeo = async (req: Request, res: Response, next: NextFunction) => {
+
+	const deliveryUser = req.user;
+
+	if(deliveryUser) {
+
+		const { geoData } = req.body;
+		
+		if(!geoData.lat && !geoData.lng) {
+			return res.status(400).json({ success: false, message: "Failed to update geoData. GeoData missing." });
+		}
+
+		const profile = await DeliveryUser.findById(deliveryUser._id);
+
+		if(profile) {
+			
+			profile.geoData = geoData;
+			const result = await profile.save();
+
+			if(result){
+				return res.status(200).json({ success: true, message: result });
+			}
+		}
+
+	}
+
+	return res.status(400).json({ success: false, message: "Failed to update delivery user geoData." });
 }

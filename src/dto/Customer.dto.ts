@@ -82,3 +82,17 @@ export class CreateDeliveryUserInputs {
 	@Length(4, 12)
 	zipcode: string;
 }
+export class EditDeliveryUserInputs {
+	
+	@Length(3, 12)
+	firstName: string;
+	
+	@Length(3, 12)
+	lastName: string;
+	
+	@Length(6, 24)
+	address: string;
+	
+	@Length(4, 12)
+	zipcode: string;
+}
