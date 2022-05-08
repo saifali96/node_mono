@@ -44,4 +44,5 @@ export interface CreateOfferInputs {
 	bins: [any];
 	zipCode: string;
 	isActive: boolean;
+	maxUse: number;
 }

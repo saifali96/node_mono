@@ -17,6 +17,7 @@ export interface OfferDoc extends Document {
 	bins: [any];
 	zipCode: string;
 	isActive: boolean;
+	maxUse: number;			// How many times the offer can be redeemed;
 
 }
 
@@ -49,7 +50,8 @@ const OfferSchema = new Schema({
 		}
 	],
 	zipCode: { type: Number, required: true },
-	isActive: Boolean
+	isActive: Boolean,
+	maxUse: { type: Number, required: true }
 
 }, {
 	toJSON: {

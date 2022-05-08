@@ -274,14 +274,14 @@ export const AddOffer = async (req: Request, res: Response, next: NextFunction) 
 
 	if(user) {
 		const { title, description, offerType, offerAmount, zipCode,
-		promoCode, promoType, validFrom, validUntil, bank, bins, minValue, maxValue, isActive } = <CreateOfferInputs>req.body;
+		promoCode, promoType, validFrom, validUntil, bank, bins, minValue, maxValue, isActive, maxUse } = <CreateOfferInputs>req.body;
 
 		const vendor = await FindVendor(user._id);
 
 		if(vendor) {
 
 			const offer = await Offer.create({
-				title, description, offerType, offerAmount, zipCode,
+				title, description, offerType, offerAmount, zipCode, maxUse,
 				promoCode, promoType, validFrom, validUntil, bank, bins, minValue, maxValue, isActive,
 				vendors: [vendor.id]
 			});
@@ -301,7 +301,7 @@ export const EditOffer = async (req: Request, res: Response, next: NextFunction)
 
 	if(user) {
 		const { title, description, offerType, offerAmount, zipCode,
-		promoCode, promoType, validFrom, validUntil, bank, bins, minValue, maxValue, isActive } = <CreateOfferInputs>req.body;
+		promoCode, promoType, validFrom, validUntil, bank, bins, minValue, maxValue, isActive, maxUse } = <CreateOfferInputs>req.body;
 
 		const currentOffer = await Offer.findById(offerID);
 
@@ -325,6 +325,7 @@ export const EditOffer = async (req: Request, res: Response, next: NextFunction)
 					currentOffer.minValue = minValue;
 					currentOffer.maxValue = maxValue;
 					currentOffer.isActive = isActive;
+					currentOffer.maxUse = maxUse;
 
 					const result = await currentOffer.save();
 
