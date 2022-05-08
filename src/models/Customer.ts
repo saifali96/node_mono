@@ -12,8 +12,10 @@ interface CustomerDoc extends Document {
 	verified: boolean;
 	otp: number;
 	otp_expiry: Date;
-	lat: number;
-	lng: number;
+	geoData: {
+		lng: number
+		lat: number
+	};
 	orders: [OrderDoc];
 	cart: [any]; 		// TODO - extract to a separate schema?
 
@@ -30,8 +32,10 @@ const CustomerSchema = new Schema({
 	verified: { type: Boolean, required: true },
 	otp: { type: Number, required: true },
 	otp_expiry: { type: Date, required: true },
-	lat: { type: Number },
-	lng: { type: Number },
+	geoData: {
+		lng: { type: Number },
+		lat: { type: Number }
+	},
 	orders: [
 		{
 			type: Schema.Types.ObjectId,
