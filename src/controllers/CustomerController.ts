@@ -4,7 +4,7 @@ import { CreateCustomerInputs, EditCustomerProfileInputs, OrderInputs, UserLogin
 import { validate } from "class-validator";
 import { GenerateOtp, GeneratePassword, GenerateSignature, isEmptyArray, onRequestOTP, validatePassword } from "../utilities";
 import { Customer } from "../models/Customer";
-import { Food, Offer } from "../models";
+import { Food, Offer, Transaction } from "../models";
 import { Order } from "../models/Order";
 
 export const CustomerSignUp = async (req: Request, res: Response, next: NextFunction) => {
@@ -420,9 +420,8 @@ export const GetOrderById = async (req: Request, res: Response, next: NextFuncti
 export const VerifyOffer = async (req: Request, res: Response, next: NextFunction) => {
 
 	const offerID = req.params.id;
-	const customer = req.user;
 
-	if(customer && offerID) {
+	if(offerID) {
 
 		const appliedOffer = await Offer.findById(offerID);
 
@@ -431,6 +430,50 @@ export const VerifyOffer = async (req: Request, res: Response, next: NextFunctio
 		}
 	}
 
-	return res.status(401).json({ success: false, message: "Failed to verify offer." });
+	return res.status(400).json({ success: false, message: "Failed to verify offer." });
+}
+
+export const CreatePayment = async (req: Request, res: Response, next: NextFunction) => {
+
+	const { amount, paymentVia, offerID } = req.body;
+	let payableAmount = Number(amount);
+	let appliedOffer, remainingUses = 0;
+
+	if(offerID) {
+
+		appliedOffer = await Offer.findById(offerID);
+
+		if(appliedOffer?.isActive) {
+			remainingUses = appliedOffer.maxUse;
+			if(remainingUses > 0) {
+				payableAmount = (payableAmount - appliedOffer.offerAmount);
+			}
+		}
+	}
+
+	// TODO - Perform Payment Gateway Charge API call
+
+	// Record the transaction
+	const transaction = await Transaction.create({
+		
+		customer: req.user?._id,
+		vendorID: '',
+		orderID: '',
+		orderValue: payableAmount,
+		offerUsed: offerID || "NA",
+		status: "OPEN",		// FAILED - SUCCEEDED
+		paymentVia,
+		paymentResponse: "Payment is via Cash on Delivery."
+	});
+
+	//  Return the transaction ID
+	if(transaction) {
+		if(offerID && remainingUses > 0) {
+			await Offer.updateOne({ _id: offerID }, { maxUse: remainingUses - 1, isActive: remainingUses === 1 ? false: true });
+		}
+		return res.status(200).json({ success: true, message: transaction });
+	}
+
+	return res.status(400).json({ success: false, message: "Failed to create payment." });
 }
 
