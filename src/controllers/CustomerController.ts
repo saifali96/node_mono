@@ -37,8 +37,10 @@ export const CustomerSignUp = async (req: Request, res: Response, next: NextFunc
 		firstName: '',
 		lastName: '',
 		verified: false,
-		lat: 0,
-		lng: 0,
+		geoData: {
+			lng: 0,
+			lat: 0
+		},
 		orders: []
 
 	});
