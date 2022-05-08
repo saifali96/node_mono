@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { EditVendorInputs, VendorLoginInputs } from "../dto";
+import { CreateOfferInputs, EditVendorInputs, VendorLoginInputs } from "../dto";
 import { CreateFoodInputs } from "../dto/Food.dto";
-import { Food } from "../models";
+import { Food, Offer } from "../models";
 import { Order } from "../models/Order";
 import { GenerateSignature, validatePassword } from "../utilities";
 import { FindVendor } from "./AdminController";
@@ -246,12 +246,93 @@ export const ProcessOrder = async (req: Request, res: Response, next: NextFuncti
 
 export const GetOffers = async (req: Request, res: Response, next: NextFunction) => {
 
+	const user = req.user;
+
+	if(user) {
+
+		const vendorOffers = await Offer.find({ vendors: user._id }).populate("vendors");
+		const genericOffers = await Offer.find({ offerType: "GENERIC" }).populate("vendors");
+
+		if(vendorOffers || genericOffers) {
+
+			if(genericOffers) {
+				const offers = vendorOffers.concat(genericOffers);
+				return res.status(201).json({ success: true, message: offers });
+			}
+
+			return res.status(201).json({ success: true, message: vendorOffers });
+		}
+	}
+
+	return res.status(400).json({ success: false, message: "Could not get offer." });
+
 }
 
 export const AddOffer = async (req: Request, res: Response, next: NextFunction) => {
 
+	const user = req.user;
+
+	if(user) {
+		const { title, description, offerType, offerAmount, zipCode,
+		promoCode, promoType, validFrom, validUntil, bank, bins, minValue, maxValue, isActive } = <CreateOfferInputs>req.body;
+
+		const vendor = await FindVendor(user._id);
+
+		if(vendor) {
+
+			const offer = await Offer.create({
+				title, description, offerType, offerAmount, zipCode,
+				promoCode, promoType, validFrom, validUntil, bank, bins, minValue, maxValue, isActive,
+				vendors: [vendor.id]
+			});
+
+			return res.status(201).json({ success: true, message: offer });
+		}
+	}
+
+	return res.status(400).json({ success: false, message: "Could not add offer." });
+
 }
 
 export const EditOffer = async (req: Request, res: Response, next: NextFunction) => {
+
+	const user = req.user;
+	const offerID = req.params.id;
+
+	if(user) {
+		const { title, description, offerType, offerAmount, zipCode,
+		promoCode, promoType, validFrom, validUntil, bank, bins, minValue, maxValue, isActive } = <CreateOfferInputs>req.body;
+
+		const currentOffer = await Offer.findById(offerID);
+
+		if(currentOffer) {
+			
+			const vendor = await FindVendor(user._id);
+
+			if(vendor) {
+
+					currentOffer.title = title;
+					currentOffer.description = description;
+					currentOffer.offerType = offerType;
+					currentOffer.offerAmount = offerAmount;
+					currentOffer.zipCode = zipCode;
+					currentOffer.promoCode = promoCode;
+					currentOffer.promoType = promoType;
+					currentOffer.validFrom = validFrom;
+					currentOffer.validUntil = validUntil;
+					currentOffer.bank = bank;
+					currentOffer.bins = bins;
+					currentOffer.minValue = minValue;
+					currentOffer.maxValue = maxValue;
+					currentOffer.isActive = isActive;
+
+					const result = await currentOffer.save();
+
+					return res.status(201).json({ success: true, message: result });
+			}
+		}
+	}
+
+	return res.status(400).json({ success: false, message: "Could not add offer." });
 
 }

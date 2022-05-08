@@ -7,6 +7,7 @@ export interface OfferDoc extends Document {
 	title: string;			// EUR 10 off on weekdays
 	description: string;	// Description with T&C
 	minValue: number;		// Minimum order value should be EUR 15
+	maxValue: number;		// Maximum order value should be EUR 100
 	offerAmount: number;	// 10
 	validFrom: Date;
 	validUntil: Date;
@@ -31,11 +32,12 @@ const OfferSchema = new Schema({
 	title: { type: String, required: true },
 	description: String,
 	minValue: { type: Number, required: true },
+	maxValue: { type: Number, required: true },
 	offerAmount: { type: Number, required: true },
 	validFrom: Date,
 	validUntil: Date,
 	promoCode: { type: String, required: true },
-	promoType: { type: Number, required: true },
+	promoType: { type: String, required: true },
 	bank: [
 		{
 			type: String
