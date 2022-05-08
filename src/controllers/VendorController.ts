@@ -241,5 +241,17 @@ export const ProcessOrder = async (req: Request, res: Response, next: NextFuncti
 		}
 	}
 
-	return res.status(400).json({ success: false, message: "Could not update order." });
+	return res.status(400).json({ success: false, message: "Could not process order." });
+}
+
+export const GetOffers = async (req: Request, res: Response, next: NextFunction) => {
+
+}
+
+export const AddOffer = async (req: Request, res: Response, next: NextFunction) => {
+
+}
+
+export const EditOffer = async (req: Request, res: Response, next: NextFunction) => {
+
 }
