@@ -4,7 +4,7 @@ import { CartItem, CreateCustomerInputs, EditCustomerProfileInputs, OrderInputs,
 import { validate } from "class-validator";
 import { GenerateOtp, GeneratePassword, GenerateSignature, isEmptyArray, onRequestOTP, validatePassword } from "../utilities";
 import { Customer } from "../models/Customer";
-import { Food, Offer, Transaction } from "../models";
+import { Food, Offer, Transaction, Vendor } from "../models";
 import { Order } from "../models/Order";
 
 export const CustomerSignUp = async (req: Request, res: Response, next: NextFunction) => {
@@ -300,10 +300,20 @@ export const DeleteCart = async (req: Request, res: Response, next: NextFunction
 const assignOrderForDelivery = async (orderID: string, vendorID: string) => {
 
 	// Find vendor
+	const vendor = await Vendor.findById(vendorID);
 
-	// Find available delivery persons
+	if(vendor) {
+		
+		const areaCode = vendor.zipcode;
+		const vendorLng = vendor.geoData.lng;
+		const vendorLat = vendor.geoData.lat;
+		
+		// Find available delivery persons
+		
+		// Find the nearest delivery person and assign the order
+		
+	}
 	
-	// Find the nearest delivery person and assign the order
 
 	// update deliveryID
 	
