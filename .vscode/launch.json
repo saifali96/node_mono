@@ -4,6 +4,7 @@
 	// Weitere Informationen finden Sie unter https://go.microsoft.com/fwlink/?linkid=830387
 	"version": "0.2.0",
 	"configurations": [
+		
 		{
 			"type": "pwa-node",
 			"request": "launch",
@@ -11,11 +12,12 @@
 			"skipFiles": [
 				"<node_internals>/**"
 			],
-			"program": "${workspaceFolder}\\index.ts",
+			"program": "${workspaceFolder}\\src\\index.ts",
 			"runtimeArgs": [ "-r", "ts-node/register", "-r", "tsconfig-paths/register" ],
+			"preLaunchTask": "npm: build",
 			"console": "integratedTerminal",
 			"outFiles": [
-				"${workspaceFolder}/**/*.js"
+				"${workspaceFolder}/dist/**/*.js"
 			]
 		}
 	]
