@@ -58,3 +58,27 @@ export class OrderInputs {
 	transactionID: string;
 	items: [CartItem];
 }
+
+export class CreateDeliveryUserInputs {
+
+	@IsEmail()
+	email: string;
+	
+	@Length(7, 14)
+	phone: string;
+
+	@Length(6, 16)
+	password: string;
+	
+	@Length(3, 12)
+	firstName: string;
+	
+	@Length(3, 12)
+	lastName: string;
+	
+	@Length(6, 24)
+	address: string;
+	
+	@Length(4, 12)
+	zipcode: string;
+}
