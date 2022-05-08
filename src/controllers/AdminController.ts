@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { CreateVendorInput } from "../dto";
-import { Vendor } from "../models";
+import { Transaction, Vendor } from "../models";
 import { GeneratePassword } from "../utilities";
 
 export const FindVendor = async (id: string | undefined, email?: string) => {
@@ -14,7 +14,7 @@ export const CreateVendor = async (req: Request, res: Response, next: NextFuncti
 	const isVendorExisting = await FindVendor('', email);
 	
 	if (isVendorExisting !== null) {
-		return res.status(400).json({ message: "Vendor exists already."});
+		return res.status(400).json({success: true, message: "Vendor exists already."});
 	}
 
 	const userPassword = await GeneratePassword(password);
@@ -27,7 +27,7 @@ export const CreateVendor = async (req: Request, res: Response, next: NextFuncti
 		foods: []
 	});
 	
-	return res.json(createVendor);
+	return res.status(201).json({ success: true, message: createVendor });
 }
 
 export const GetVendors = async (req: Request, res: Response, next: NextFunction ) => {
@@ -35,19 +35,44 @@ export const GetVendors = async (req: Request, res: Response, next: NextFunction
 	const vendors = await Vendor.find();
 
 	if (vendors !== null) {
-		return res.json({vendors});
+		return res.status(200).json({ success: true, message: vendors});
 	}
 
-	return res.status(400).json({ message: "Vendors not found." });
+	return res.status(400).json({ success: true, message: "Vendors not found." });
 	
 }
+
 export const GetVendorByID = async (req: Request, res: Response, next: NextFunction ) => {
 
 	const vendor = await FindVendor(req.params.id);
 
 	if (vendor !== null) {
-		return res.json(vendor);
+		return res.json({ success: true, message: vendor});
 	}
 
-	return res.status(400).json({ message: "Vendor not found." });
+	return res.status(200).status(400).json({ success: true, message: "Vendor not found." });
+}
+
+export const GetTransactions = async (req: Request, res: Response, next: NextFunction ) => {
+
+	const transactions = await Transaction.find();
+
+	if (transactions) {
+		
+		return res.status(200).json({ success: true, message: transactions });
+	}
+
+	return res.status(400).json({ success: true, message: "Transactions not found." });
+}
+
+export const GetTransactionByID = async (req: Request, res: Response, next: NextFunction ) => {
+
+	const transaction = await Transaction.findById(req.params.id);
+
+	if (transaction) {
+
+		return res.status(200).json({ success: true, message: transaction });
+	}
+
+	return res.status(400).json({ success: true, message: "Transaction not found." });
 }
