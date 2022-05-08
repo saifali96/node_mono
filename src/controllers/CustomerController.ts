@@ -59,7 +59,7 @@ export const CustomerSignUp = async (req: Request, res: Response, next: NextFunc
 		return res.status(201).json({ success: true, message: { signature, verified: result.verified, email: result.email }});
 	}
 
-	return res.status(401).json({ success: false, message: "Failed to signup user." });
+	return res.status(400).json({ success: false, message: "Failed to signup user." });
 }
 
 export const CustomerLogin = async (req: Request, res: Response, next: NextFunction) => {
@@ -69,7 +69,7 @@ export const CustomerLogin = async (req: Request, res: Response, next: NextFunct
 
 	if (loginErrors.length > 0) {
 
-		return res.status(401).json(loginErrors);
+		return res.status(400).json(loginErrors);
 	}
 
 	const { email, password } = loginInputs;
@@ -91,7 +91,7 @@ export const CustomerLogin = async (req: Request, res: Response, next: NextFunct
 		}
 	}
 
-	return res.status(401).json({ success: false, message: "Failed to login user." });
+	return res.status(400).json({ success: false, message: "Failed to login user." });
 
 }
 
@@ -122,7 +122,7 @@ export const CustomerVerify = async (req: Request, res: Response, next: NextFunc
 		}
 	}
 
-	return res.status(401).json({ success: false, message: "Failed to verify user." });
+	return res.status(400).json({ success: false, message: "Failed to verify user." });
 }
 
 
@@ -147,7 +147,7 @@ export const RequestOTP = async (req: Request, res: Response, next: NextFunction
 		}
 	}
 
-	return res.status(401).json({ success: false, message: "Failed to request OTP." });
+	return res.status(400).json({ success: false, message: "Failed to request OTP." });
 
 }
 
@@ -165,7 +165,7 @@ export const GetCustomerProfile = async (req: Request, res: Response, next: Next
 		}
 	}
 
-	return res.status(401).json({ success: false, message: "Failed to fetch customer profile." });
+	return res.status(400).json({ success: false, message: "Failed to fetch customer profile." });
 }
 
 export const EditCustomerProfile = async (req: Request, res: Response, next: NextFunction) => {
@@ -178,7 +178,7 @@ export const EditCustomerProfile = async (req: Request, res: Response, next: Nex
 
 	if (profileErrors.length > 0) {
 
-		return res.status(401).json(profileErrors);
+		return res.status(400).json(profileErrors);
 	}
 
 	const { firstName, lastName, address } = profileInputs;
@@ -199,7 +199,7 @@ export const EditCustomerProfile = async (req: Request, res: Response, next: Nex
 		}
 	}
 
-	return res.status(401).json({ success: false, message: "Failed to edit customer profile." });
+	return res.status(400).json({ success: false, message: "Failed to edit customer profile." });
 
 }
 
@@ -250,7 +250,7 @@ export const AddToCart = async (req: Request, res: Response, next: NextFunction)
 		}
 
 	}
-	return res.status(401).json({ success: false, message: "Failed to create a cart." });
+	return res.status(400).json({ success: false, message: "Failed to create a cart." });
 
 }
 
@@ -269,7 +269,7 @@ export const GetCart = async (req: Request, res: Response, next: NextFunction) =
 		}
 	}
 
-	return res.status(401).json({ success: false, message: "Failed to get cart." });
+	return res.status(400).json({ success: false, message: "Failed to get cart." });
 
 }
 
@@ -293,9 +293,22 @@ export const DeleteCart = async (req: Request, res: Response, next: NextFunction
 		}
 	}
 
-	return res.status(401).json({ success: false, message: "Failed to delete cart." });
+	return res.status(400).json({ success: false, message: "Failed to delete cart." });
 
 }
+
+const assignOrderForDelivery = async (orderID: string, vendorID: string) => {
+
+	// Find vendor
+
+	// Find available delivery persons
+	
+	// Find the nearest delivery person and assign the order
+
+	// update deliveryID
+	
+}
+
 
 export const CreatePayment = async (req: Request, res: Response, next: NextFunction) => {
 
@@ -435,7 +448,7 @@ export const CreateOrder = async (req: Request, res: Response, next: NextFunctio
 			});
 	
 			if(netAmount !== transactionObj.currentTransaction.originalValue) {
-				return res.status(401).json({ success: false, message: "Failed to create order." });
+				return res.status(400).json({ success: false, message: "Failed to create order." });
 			}
 
 			// Create order with item descriptions
@@ -469,11 +482,13 @@ export const CreateOrder = async (req: Request, res: Response, next: NextFunctio
 					// Update transaction Object
 
 					transactionObj.currentTransaction.vendorID = vendorID,
-					transactionObj.currentTransaction.orderID = orderID,
+					transactionObj.currentTransaction.orderID = currentOrder.id,
 					transactionObj.currentTransaction.status = "CONFIRMED",
 
 					await profile.save();
 					await transactionObj.currentTransaction.save();
+
+					assignOrderForDelivery(currentOrder.id, vendorID);
 
 					return res.status(201).json({ success: true, message: currentOrder });
 
@@ -482,7 +497,7 @@ export const CreateOrder = async (req: Request, res: Response, next: NextFunctio
 		}		
 	}
 
-	return res.status(401).json({ success: false, message: "Failed to create order." });
+	return res.status(400).json({ success: false, message: "Failed to create order." });
 }
 
 export const GetOrders = async (req: Request, res: Response, next: NextFunction) => {
@@ -498,7 +513,7 @@ export const GetOrders = async (req: Request, res: Response, next: NextFunction)
 		}
 	}
 
-	return res.status(401).json({ success: false, message: "Failed to get orders." });
+	return res.status(400).json({ success: false, message: "Failed to get orders." });
 }
 
 export const GetOrderById = async (req: Request, res: Response, next: NextFunction) => {
@@ -515,7 +530,7 @@ export const GetOrderById = async (req: Request, res: Response, next: NextFuncti
 		}
 	}
 
-	return res.status(401).json({ success: false, message: "Failed to get order." });
+	return res.status(400).json({ success: false, message: "Failed to get order." });
 }
 
 export const VerifyOffer = async (req: Request, res: Response, next: NextFunction) => {

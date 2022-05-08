@@ -19,7 +19,7 @@ const TransactionSchema = new Schema({
 
 	customer: String,
 	vendorID: String,
-	orderID: String,
+	orderID: { type: Schema.Types.ObjectId, ref: "order" },
 	originalValue: Number,
 	orderValue: Number,
 	offerUsed: String,
