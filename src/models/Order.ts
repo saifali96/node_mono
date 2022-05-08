@@ -4,12 +4,18 @@ export interface OrderDoc extends Document {
 	
 	orderID: string;
 	orderedBy: string;
+	orderedFrom: string;
 	items: [any];		// [{ food, unit: 1 }]
 	totalAmount: number;
 	orderDate: Date;
 	paidVia: string;	// CoD, CC, Wallet
 	paymentResponse: string; // { status: true, response: "Response string" }
 	orderStatus: string;
+	remarks: string;
+	deliveryID: string;
+	appliedOffers: boolean;
+	offerID: string;
+	readyTime: number;
 
 }
 
@@ -17,6 +23,7 @@ const OrderSchema = new Schema({
 
 	orderID: { type: String, required: true },
 	orderedBy: { type: Schema.Types.ObjectId, ref: "customer", required: true },
+	orderedFrom: { type: Schema.Types.ObjectId, ref: "vendor", required: true },
 	items: [
 		{
 			food: { type: Schema.Types.ObjectId, ref: "food", required: true },
@@ -28,6 +35,11 @@ const OrderSchema = new Schema({
 	paidVia: { type: String},
 	paymentResponse: { type: String},
 	orderStatus: { type: String},
+	remarks: { type: String},
+	deliveryID: { type: String},
+	appliedOffers: { type: Boolean},
+	offerID: { type: String},
+	readyTime: { type: Number}
 }, {
 	toJSON: {
 		transform(doc, ret){

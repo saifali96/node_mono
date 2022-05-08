@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
-import { AddFood, GetFoods, GetVendorProfile, UpdateVendorCoverImage, UpdateVendorProfile, UpdateVendorService, VendorLogin } from "../controllers";
+import { AddFood, GetCurrentOrders, GetFoods, GetOrderDetails, GetVendorProfile, ProcessOrder, UpdateVendorCoverImage, UpdateVendorProfile, UpdateVendorService, VendorLogin } from "../controllers";
 import { Authenticate } from "../middlewares";
 import multer from "multer";
 import { v4 as uuidv4 } from "uuid";
@@ -33,5 +33,9 @@ router.patch("/service", UpdateVendorService);
 
 router.post("/food", images, AddFood);
 router.get("/food", GetFoods);
+
+router.get("/orders", GetCurrentOrders);
+router.put("/orders/:id/process", ProcessOrder);
+router.get("/orders/:id", GetOrderDetails);
 
 export { router as VendorRoute };

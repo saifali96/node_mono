@@ -311,66 +311,77 @@ export const CreateOrder = async (req: Request, res: Response, next: NextFunctio
 
 		const profile = await Customer.findById(customer._id);
 
-		const cartInputs = plainToInstance(OrderInputs, <[OrderInputs]>req.body);
-		let errArr = Array();
+		if(profile) {
 
-		for (const input of cartInputs) {
-			errArr.push(await validate(plainToClass(OrderInputs, input), { validationError: { target: false }}));
-		}
-
-		if (!isEmptyArray(errArr)) {
-
-			return res.status(401).json(errArr);
-		}
-
-		//  Grab order items from request
-		const cart = <[OrderInputs]>req.body;
-		let cartItems = Array();
-		let netAmount = 0.0;
-
-		// Calculate order amount
-		const foods = await Food.find().where("_id").in(cart.map(item => item._id)).exec();
-
-		foods.map(food => {
-
-			cart.map(({ _id, unit }) => {
-
-				if(food._id == _id) {
-					netAmount += (food.price * unit);
-					cartItems.push({ food, unit });
+			const cartInputs = plainToInstance(OrderInputs, <[OrderInputs]>req.body);
+			let errArr = Array();
+	
+			for (const input of cartInputs) {
+				errArr.push(await validate(plainToClass(OrderInputs, input), { validationError: { target: false }}));
+			}
+	
+			if (!isEmptyArray(errArr)) {
+	
+				return res.status(401).json(errArr);
+			}
+	
+			//  Grab order items from request
+			const cart = <[OrderInputs]>req.body;
+			let cartItems = Array();
+			let netAmount = 0.0;
+			let vendorID = '';
+	
+			// Calculate order amount
+			const foods = await Food.find().where("_id").in(cart.map(item => item._id)).exec();
+	
+			foods.map(food => {
+	
+				cart.map(({ _id, unit }) => {
+	
+					if(food._id == _id) {
+						vendorID = food.vendorID;
+						netAmount += (food.price * unit);
+						cartItems.push({ food, unit });
+					}
+				});
+			});
+	
+			// Create order with item descriptions
+			if(cartItems) {
+	
+				// Create Order
+				const currentOrder = await Order.create({
+					orderID,
+					orderedBy: customer._id,
+					orderedFrom: vendorID,
+					items: cartItems,
+					totalAmount: netAmount,
+					orderDate: new Date(),
+					paidVia: "CoD",
+					paymentResponse: '',
+					orderStatus: "PENDING",
+					remarks: '',
+					deliveryID: '',
+					appliedOffers: false,
+					offerID: null,
+					readyTime: 45,
+				});
+	
+				if(currentOrder) {
+					
+					// Finally update orders in user account
+					profile.cart = [] as any;
+					profile.orders.push(currentOrder);
+					await profile?.save();
+	
+					return res.status(201).json({ success: true, message: currentOrder });
 				}
-			});
-		});
-
-		// Create order with item descriptions
-		if(cartItems) {
-
-			// Create Order
-			const currentOrder = await Order.create({
-				orderID,
-				orderedBy: customer._id,
-				items: cartItems,
-				totalAmount: netAmount,
-				orderDate: new Date(),
-				paidVia: "CoD",
-				paymentResponse: '',
-				orderStatus: "PENDING"
-			});
-
-			if(currentOrder) {
-				
-				// Finally update orders in user account
-				profile?.orders.push(currentOrder);
-				await profile?.save();
-
-				return res.status(201).json({ success: true, message: currentOrder });
 			}
 
 		}		
 	}
 
 	return res.status(401).json({ success: false, message: "Failed to create order." });
-
 }
 
 export const GetOrders = async (req: Request, res: Response, next: NextFunction) => {
