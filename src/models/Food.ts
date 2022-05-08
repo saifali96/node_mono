@@ -20,7 +20,7 @@ const FoodSchema = new Schema({
 	description: { type: String, required: true },
 	category: { type: String },
 	foodType: { type: String, required: true },
-	readyTime: { type: String },
+	readyTime: { type: Number },
 	price: { type: Number, required: true },
 	rating: { type: Number },
 	images: { type: [String] }

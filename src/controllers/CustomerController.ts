@@ -416,6 +416,7 @@ export const CreateOrder = async (req: Request, res: Response, next: NextFunctio
 			let cartItems = Array();
 			let netAmount = 0.0;
 			let vendorID = '';
+			let readyTime = 0;
 	
 			// Calculate order amount
 			const foods = await Food.find().where("_id").in(items.map(item => item._id)).exec();
@@ -425,6 +426,7 @@ export const CreateOrder = async (req: Request, res: Response, next: NextFunctio
 				items.map(({ _id, unit }) => {
 	
 					if(food._id == _id) {
+						readyTime += food.readyTime;
 						vendorID = food.vendorID;
 						netAmount += (food.price * unit);
 						cartItems.push({ food, unit });
@@ -455,7 +457,7 @@ export const CreateOrder = async (req: Request, res: Response, next: NextFunctio
 					deliveryID: '',
 					appliedOffers: transactionObj.currentTransaction.offerUsed ? true : false,
 					offerID: transactionObj.currentTransaction.offerUsed ? transactionObj.currentTransaction.offerUsed : null,
-					readyTime: 45		// TODO - calculate ready time
+					readyTime: readyTime / cartItems.length
 				});
 	
 				if(currentOrder) {
