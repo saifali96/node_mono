@@ -4,7 +4,7 @@ import { CreateCustomerInputs, EditCustomerProfileInputs, OrderInputs, UserLogin
 import { validate } from "class-validator";
 import { GenerateOtp, GeneratePassword, GenerateSignature, isEmptyArray, onRequestOTP, validatePassword } from "../utilities";
 import { Customer } from "../models/Customer";
-import { Food } from "../models";
+import { Food, Offer } from "../models";
 import { Order } from "../models/Order";
 
 export const CustomerSignUp = async (req: Request, res: Response, next: NextFunction) => {
@@ -87,7 +87,7 @@ export const CustomerLogin = async (req: Request, res: Response, next: NextFunct
 				verified: customer.verified
 			});
 
-			return res.status(201).json({ success: true, message: { signature, verified: customer.verified, email: customer.email }});
+			return res.status(200).json({ success: true, message: { signature, verified: customer.verified, email: customer.email }});
 		}
 	}
 
@@ -117,7 +117,7 @@ export const CustomerVerify = async (req: Request, res: Response, next: NextFunc
 					verified: updateProfile.verified
 				});
 
-				return res.status(201).json({ success: true, message: { signature, verified: updateProfile.verified, email: updateProfile.email }});
+				return res.status(200).json({ success: true, message: { signature, verified: updateProfile.verified, email: updateProfile.email }});
 			}
 		}
 	}
@@ -143,7 +143,7 @@ export const RequestOTP = async (req: Request, res: Response, next: NextFunction
 			await customerProfile.save();
 			await onRequestOTP(otp, customerProfile.phone);
 
-			return res.status(201).json({ success: true, message: "Your OTP has been sent to your phone." });
+			return res.status(200).json({ success: true, message: "Your OTP has been sent to your phone." });
 		}
 	}
 
@@ -161,7 +161,7 @@ export const GetCustomerProfile = async (req: Request, res: Response, next: Next
 
 		if(customerProfile) {
 
-			return res.status(201).json({ success: true, message: customerProfile });
+			return res.status(200).json({ success: true, message: customerProfile });
 		}
 	}
 
@@ -195,7 +195,7 @@ export const EditCustomerProfile = async (req: Request, res: Response, next: Nex
 
 			const result = await customerProfile.save();
 
-			return res.status(201).json({ success: true, message: result });
+			return res.status(200).json({ success: true, message: result });
 		}
 	}
 
@@ -244,7 +244,7 @@ export const AddToCart = async (req: Request, res: Response, next: NextFunction)
 				const cartResult = await profile.save();
 
 				if(cartResult) {
-					return res.status(201).json({ success: true, message: cartResult.cart });
+					return res.status(200).json({ success: true, message: cartResult.cart });
 				}
 			}
 		}
@@ -264,7 +264,7 @@ export const GetCart = async (req: Request, res: Response, next: NextFunction) =
 
 		if(profile) {
 
-			return res.status(201).json({ success: true, message: profile.cart });
+			return res.status(200).json({ success: true, message: profile.cart });
 
 		}
 	}
@@ -288,7 +288,7 @@ export const DeleteCart = async (req: Request, res: Response, next: NextFunction
 			profile.cart = [] as any;
 			const cartResult = await profile.save();
 
-			return res.status(201).json({ success: true, message: cartResult });
+			return res.status(200).json({ success: true, message: cartResult });
 
 		}
 	}
@@ -393,7 +393,7 @@ export const GetOrders = async (req: Request, res: Response, next: NextFunction)
 		const profile = await Customer.findById(customer._id).populate("orders");
 
 		if(profile) {
-			return res.status(201).json({ success: true, message: profile.orders });
+			return res.status(200).json({ success: true, message: profile.orders });
 		}
 	}
 
@@ -410,10 +410,27 @@ export const GetOrderById = async (req: Request, res: Response, next: NextFuncti
 		const order = await Order.findById(orderID).populate("items.food");
 
 		if(order?.orderedBy == customer._id) {
-			return res.status(201).json({ success: true, message: order });
+			return res.status(200).json({ success: true, message: order });
 		}
 	}
 
 	return res.status(401).json({ success: false, message: "Failed to get order." });
+}
+
+export const VerifyOffer = async (req: Request, res: Response, next: NextFunction) => {
+
+	const offerID = req.params.id;
+	const customer = req.user;
+
+	if(customer && offerID) {
+
+		const appliedOffer = await Offer.findById(offerID);
+
+		if(appliedOffer?.isActive) {
+			return res.status(200).json({ success: true, message: appliedOffer });
+		}
+	}
+
+	return res.status(401).json({ success: false, message: "Failed to verify offer." });
 }
 
