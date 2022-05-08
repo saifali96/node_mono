@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { FoodDoc, Vendor } from "../models";
+import { FoodDoc, Offer, Vendor } from "../models";
 
 export const GetFoodAvailability = async (req: Request, res: Response, next: NextFunction) => {
 
@@ -85,4 +85,19 @@ export const GetRestaurantByID = async (req: Request, res: Response, next: NextF
 	}
 
 	return res.status(401).json({ success: false, message: "Unable to find restaurant by ID." });
+}
+
+export const GetAvailOffers = async (req: Request, res: Response, next: NextFunction) => {
+
+	const zipCode = req.params.zipcode;
+
+	// TODO - Send vendor info along with the Offer object?
+	const offers = await Offer.find({ zipCode, isActive: true });
+
+	if(offers) {
+		
+		return res.status(200).json({ success: true, message: offers });
+	}
+
+	return res.status(401).json({ success: false, message: "Unable to find offers." });
 }
