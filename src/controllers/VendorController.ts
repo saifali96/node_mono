@@ -29,7 +29,7 @@ export const VendorLogin = async (req: Request, res: Response, next: NextFunctio
 		}
 	}
 
-	return res.status(401).json({ success: false, message: "User does not exist." });
+	return res.status(400).json({ success: false, message: "User does not exist." });
 }
 
 export const GetVendorProfile = async (req: Request, res: Response, next: NextFunction) => {
@@ -49,25 +49,32 @@ export const GetVendorProfile = async (req: Request, res: Response, next: NextFu
 
 export const UpdateVendorProfile = async (req: Request, res: Response, next: NextFunction) => {
 	
-	const { foodType, name, address, phone } = <EditVendorInputs>req.body;
-	const user = req.user;
+	const { foodType, name, address, phone, geoData } = <EditVendorInputs>req.body;
 
-	if (user) {
-
-		const vendor = await FindVendor(user._id);
-		
-		if(vendor !== null) {
+	const vendor = await FindVendor(req.user?._id);
+	
+	if(vendor !== null) {
+		if (name) {
 			vendor.name = name;
+		}
+		if (address) {
 			vendor.address = address;
+		}
+		if (phone) {
 			vendor.phone = phone;
+		}
+		if (foodType) {
 			vendor.foodType = foodType;
-
-			const savedResult = await vendor.save();
-			return res.status(201).json({ success: true, message: savedResult });
-
+		}
+		if (geoData) {
+			vendor.geoData = geoData;
 		}
 
-		return res.status(201).json({ success: true, message: vendor });
+		const savedResult = await vendor.save();
+
+		if(savedResult) {
+			return res.status(201).json({ success: true, message: savedResult });
+		}
 	}
 
 	return res.status(400).json({ success: false, message: "Vendor profile not found." });

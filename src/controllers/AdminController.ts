@@ -24,7 +24,8 @@ export const CreateVendor = async (req: Request, res: Response, next: NextFuncti
 		password: userPassword,
 		rating: 0,
 		coverImages: [],
-		foods: []
+		foods: [],
+		geoData: { lng: 0.0, lat: 0.0 }
 	});
 	
 	return res.status(201).json({ success: true, message: createVendor });

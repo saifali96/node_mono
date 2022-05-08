@@ -14,6 +14,10 @@ export interface EditVendorInputs {
 	address: string;
 	phone: string;
 	foodType: [string];
+	geoData: {
+		lng: number,
+		lat: number
+	}
 }
 
 export interface VendorLoginInputs {
