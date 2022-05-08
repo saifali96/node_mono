@@ -374,7 +374,7 @@ export const CreatePayment = async (req: Request, res: Response, next: NextFunct
 const validateTransaction = async (transactionID: string) => {
 
 	const currentTransaction = await Transaction.findById(transactionID);
-	if(currentTransaction && currentTransaction.status !== "FAILED"){
+	if(currentTransaction && currentTransaction.status !== "FAILED" && currentTransaction.status !== "CONFIRMED"){
 		return { status: true, currentTransaction };
 	}
 	
@@ -408,7 +408,7 @@ export const CreateOrder = async (req: Request, res: Response, next: NextFunctio
 		const transactionObj = await validateTransaction(transactionID);
 
 		if(!transactionObj.status){
-			return res.status(400).json({ success: false, message: "Error while placing order." });
+			return res.status(400).json({ success: false, message: "Error while placing order. Transaction failed." });
 		}
 
 		if(profile && transactionObj.status && transactionObj.currentTransaction) {
