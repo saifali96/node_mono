@@ -7,6 +7,7 @@ export interface OrderDoc extends Document {
 	orderedFrom: string;
 	items: [any];		// [{ food, unit: 1 }]
 	totalAmount: number;
+	paidAmount: number;
 	orderDate: Date;
 	paidVia: string;	// CoD, CC, Wallet
 	paymentResponse: string; // { status: true, response: "Response string" }
@@ -31,6 +32,7 @@ const OrderSchema = new Schema({
 		}
 	],
 	totalAmount: { type: Number, required: true },
+	paidAmount: { type: Number, required: true },
 	orderDate: { type: Date },
 	paidVia: { type: String},
 	paymentResponse: { type: String},

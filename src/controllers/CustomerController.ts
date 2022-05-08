@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
 import { plainToClass, plainToInstance } from "class-transformer";
-import { CreateCustomerInputs, EditCustomerProfileInputs, OrderInputs, UserLoginInputs } from "../dto/Customer.dto";
+import { CartItem, CreateCustomerInputs, EditCustomerProfileInputs, OrderInputs, UserLoginInputs } from "../dto/Customer.dto";
 import { validate } from "class-validator";
 import { GenerateOtp, GeneratePassword, GenerateSignature, isEmptyArray, onRequestOTP, validatePassword } from "../utilities";
 import { Customer } from "../models/Customer";
@@ -212,7 +212,7 @@ export const AddToCart = async (req: Request, res: Response, next: NextFunction)
 		const profile = await Customer.findById(customer._id).populate("cart.food");
 		let cartItems = Array();
 
-		const { _id, unit } = <OrderInputs>req.body;
+		const { _id, unit } = <CartItem>req.body;
 		const food = await Food.findById(_id);
 
 		if(food && profile) {
@@ -297,12 +297,107 @@ export const DeleteCart = async (req: Request, res: Response, next: NextFunction
 
 }
 
+export const CreatePayment = async (req: Request, res: Response, next: NextFunction) => {
 
+	const { paymentVia, offerID } = req.body;
+
+	let errArr = Array();
+	const items = <[CartItem]>req.body.items;
+	for (const input of items) {
+		errArr.push(await validate(plainToClass(CartItem, input), { validationError: { target: false }}));
+	}
+
+	if (!isEmptyArray(errArr)) {
+
+		return res.status(400).json({ success: false, message: errArr });
+	}
+	
+	let netAmount = 0.0;
+
+	// Calculate order amount
+	const foods = await Food.find().where("_id").in(items.map(item => item._id)).exec();
+
+	foods.map(food => {
+
+		items.map(({ _id, unit }) => {
+
+			if(food._id == _id) {
+				netAmount += (food.price * unit);
+			}
+		});
+	});
+
+	let payableAmount = Number();
+	let appliedOffer;
+	let remainingUses = 0;
+
+	if(offerID) {
+
+		appliedOffer = await Offer.findById(offerID);
+
+		if(appliedOffer?.isActive) {
+			remainingUses = appliedOffer.maxUse;
+			if(remainingUses > 0) {
+				payableAmount = (netAmount - appliedOffer.offerAmount);
+			}
+		}
+	}
+
+	// TODO - Perform Payment Gateway Charge API call
+
+	// Record the transaction
+	const transaction = await Transaction.create({
+		
+		customer: req.user?._id,
+		vendorID: '',
+		orderID: '',
+		originalValue: netAmount,
+		orderValue: payableAmount,
+		offerUsed: offerID || null,
+		status: "OPEN",		// FAILED - SUCCEEDED
+		paymentVia,
+		paymentResponse: "Payment is via Cash on Delivery.",
+		items
+	});
+
+	//  Return the transaction ID
+	if(transaction) {
+		if(offerID && remainingUses > 0) {
+			await Offer.updateOne({ _id: offerID }, { maxUse: remainingUses - 1, isActive: remainingUses === 1 ? false: true });
+		}
+		return res.status(200).json({ success: true, message: transaction });
+	}
+
+	return res.status(400).json({ success: false, message: "Failed to create payment." });
+}
+
+const validateTransaction = async (transactionID: string) => {
+
+	const currentTransaction = await Transaction.findById(transactionID);
+	if(currentTransaction && currentTransaction.status !== "FAILED"){
+		return { status: true, currentTransaction };
+	}
+	
+	return { status: false, currentTransaction }
+}
 
 export const CreateOrder = async (req: Request, res: Response, next: NextFunction) => {
 
+	const orderObj = plainToInstance(OrderInputs, <OrderInputs>req.body);
+	let errArr = Array();
+
+	for (const input of orderObj.items) {
+		errArr.push(await validate(plainToClass(CartItem, input), { validationError: { target: false }}));
+	}
+
+	if (!isEmptyArray(errArr)) {
+
+		return res.status(400).json({ success: false, message: errArr });
+	}
+
 	// Get current logged in user
 	const customer = req.user;
+	const { transactionID, items } = orderObj;
 
 	if(customer) {
 		
@@ -310,33 +405,24 @@ export const CreateOrder = async (req: Request, res: Response, next: NextFunctio
 		const orderID = `${Math.floor(Math.random() * 89999) + 1000}`;	// TODO - change to UUID?
 
 		const profile = await Customer.findById(customer._id);
+		const transactionObj = await validateTransaction(transactionID);
 
-		if(profile) {
+		if(!transactionObj.status){
+			return res.status(400).json({ success: false, message: "Error while placing order." });
+		}
 
-			const cartInputs = plainToInstance(OrderInputs, <[OrderInputs]>req.body);
-			let errArr = Array();
+		if(profile && transactionObj.status && transactionObj.currentTransaction) {
 	
-			for (const input of cartInputs) {
-				errArr.push(await validate(plainToClass(OrderInputs, input), { validationError: { target: false }}));
-			}
-	
-			if (!isEmptyArray(errArr)) {
-	
-				return res.status(401).json(errArr);
-			}
-	
-			//  Grab order items from request
-			const cart = <[OrderInputs]>req.body;
 			let cartItems = Array();
 			let netAmount = 0.0;
 			let vendorID = '';
 	
 			// Calculate order amount
-			const foods = await Food.find().where("_id").in(cart.map(item => item._id)).exec();
+			const foods = await Food.find().where("_id").in(items.map(item => item._id)).exec();
 	
 			foods.map(food => {
 	
-				cart.map(({ _id, unit }) => {
+				items.map(({ _id, unit }) => {
 	
 					if(food._id == _id) {
 						vendorID = food.vendorID;
@@ -346,6 +432,10 @@ export const CreateOrder = async (req: Request, res: Response, next: NextFunctio
 				});
 			});
 	
+			if(netAmount !== transactionObj.currentTransaction.originalValue) {
+				return res.status(401).json({ success: false, message: "Failed to create order." });
+			}
+
 			// Create order with item descriptions
 			if(cartItems) {
 	
@@ -355,16 +445,17 @@ export const CreateOrder = async (req: Request, res: Response, next: NextFunctio
 					orderedBy: customer._id,
 					orderedFrom: vendorID,
 					items: cartItems,
-					totalAmount: netAmount,
 					orderDate: new Date(),
+					totalAmount: netAmount,
+					paidAmount: transactionObj.currentTransaction.orderValue,
 					paidVia: "CoD",
 					paymentResponse: '',
 					orderStatus: "PENDING",
 					remarks: '',
 					deliveryID: '',
-					appliedOffers: false,
-					offerID: null,
-					readyTime: 45,
+					appliedOffers: transactionObj.currentTransaction.offerUsed ? true : false,
+					offerID: transactionObj.currentTransaction.offerUsed ? transactionObj.currentTransaction.offerUsed : null,
+					readyTime: 45		// TODO - calculate ready time
 				});
 	
 				if(currentOrder) {
@@ -372,12 +463,20 @@ export const CreateOrder = async (req: Request, res: Response, next: NextFunctio
 					// Finally update orders in user account
 					profile.cart = [] as any;
 					profile.orders.push(currentOrder);
-					await profile?.save();
-	
+
+					// Update transaction Object
+
+					transactionObj.currentTransaction.vendorID = vendorID,
+					transactionObj.currentTransaction.orderID = orderID,
+					transactionObj.currentTransaction.status = "CONFIRMED",
+
+					await profile.save();
+					await transactionObj.currentTransaction.save();
+
 					return res.status(201).json({ success: true, message: currentOrder });
+
 				}
 			}
-
 		}		
 	}
 
@@ -432,48 +531,3 @@ export const VerifyOffer = async (req: Request, res: Response, next: NextFunctio
 
 	return res.status(400).json({ success: false, message: "Failed to verify offer." });
 }
-
-export const CreatePayment = async (req: Request, res: Response, next: NextFunction) => {
-
-	const { amount, paymentVia, offerID } = req.body;
-	let payableAmount = Number(amount);
-	let appliedOffer, remainingUses = 0;
-
-	if(offerID) {
-
-		appliedOffer = await Offer.findById(offerID);
-
-		if(appliedOffer?.isActive) {
-			remainingUses = appliedOffer.maxUse;
-			if(remainingUses > 0) {
-				payableAmount = (payableAmount - appliedOffer.offerAmount);
-			}
-		}
-	}
-
-	// TODO - Perform Payment Gateway Charge API call
-
-	// Record the transaction
-	const transaction = await Transaction.create({
-		
-		customer: req.user?._id,
-		vendorID: '',
-		orderID: '',
-		orderValue: payableAmount,
-		offerUsed: offerID || "NA",
-		status: "OPEN",		// FAILED - SUCCEEDED
-		paymentVia,
-		paymentResponse: "Payment is via Cash on Delivery."
-	});
-
-	//  Return the transaction ID
-	if(transaction) {
-		if(offerID && remainingUses > 0) {
-			await Offer.updateOne({ _id: offerID }, { maxUse: remainingUses - 1, isActive: remainingUses === 1 ? false: true });
-		}
-		return res.status(200).json({ success: true, message: transaction });
-	}
-
-	return res.status(400).json({ success: false, message: "Failed to create payment." });
-}
-

@@ -42,7 +42,7 @@ export interface CustomerPayload {
 	verified: boolean;
 }
 
-export class OrderInputs {
+export class CartItem {
 	
 	@Length(24)
 	_id: string;
@@ -51,4 +51,10 @@ export class OrderInputs {
   	@Min(1)
 	@Max(10)
 	unit: number;
+}
+
+export class OrderInputs {
+	
+	transactionID: string;
+	items: [CartItem];
 }
