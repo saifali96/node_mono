@@ -26,6 +26,7 @@ const DeliveryUserSchema = new Schema({
 	firstName: { type: String },
 	lastName: { type: String },
 	address: { type: String },
+	zipcode: { type: String },
 	phone: { type: String, required: true },
 	verified: { type: Boolean, required: true },
 	isAvailable: { type: Boolean, required: true },

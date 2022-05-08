@@ -4,7 +4,7 @@ import { CartItem, CreateCustomerInputs, EditCustomerProfileInputs, OrderInputs,
 import { validate } from "class-validator";
 import { GenerateOtp, GeneratePassword, GenerateSignature, isEmptyArray, onRequestOTP, validatePassword } from "../utilities";
 import { Customer } from "../models/Customer";
-import { Food, Offer, Transaction, Vendor } from "../models";
+import { DeliveryUser, Food, Offer, Transaction, Vendor } from "../models";
 import { Order } from "../models/Order";
 
 export const CustomerSignUp = async (req: Request, res: Response, next: NextFunction) => {
@@ -311,14 +311,24 @@ const assignOrderForDelivery = async (orderID: string, vendorID: string) => {
 		const vendorLat = vendor.geoData.lat;
 		
 		// Find available delivery persons
-		
-		// Find the nearest delivery person and assign the order
-		
-	}
-	
+		const deliveryPersons = await DeliveryUser.find({ zipcode: areaCode, verified: true, isAvailable: true });
 
-	// update deliveryID
-	
+		if(deliveryPersons) {
+			// TODO - Find the nearest delivery person and assign the order
+			const currentOrder = await Order.findById(orderID);
+			
+			if(currentOrder) {
+				
+				// update deliveryID
+				currentOrder.deliveryID = deliveryPersons[0].id;
+				deliveryPersons[0].orders.push(currentOrder.id);
+				await deliveryPersons[0].save();
+				await currentOrder.save();
+
+				// TODO - Notify Vendor/User via push/sms/email?
+			}
+		}	
+	}
 }
 
 
@@ -374,8 +384,8 @@ export const CreatePayment = async (req: Request, res: Response, next: NextFunct
 	const transaction = await Transaction.create({
 		
 		customer: req.user?._id,
-		vendorID: '',
-		orderID: '',
+		vendorID: null,
+		orderID: null,
 		originalValue: netAmount,
 		orderValue: payableAmount,
 		offerUsed: offerID || null,
