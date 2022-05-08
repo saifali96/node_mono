@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { CreateVendorInput } from "../dto";
-import { Transaction, Vendor } from "../models";
+import { DeliveryUser, Transaction, Vendor } from "../models";
 import { GeneratePassword } from "../utilities";
 
 export const FindVendor = async (id: string | undefined, email?: string) => {
@@ -76,4 +76,37 @@ export const GetTransactionByID = async (req: Request, res: Response, next: Next
 	}
 
 	return res.status(400).json({ success: true, message: "Transaction not found." });
+}
+
+export const VerifyDeliveryUser = async (req: Request, res: Response, next: NextFunction ) => {
+
+	const { id, status } = req.body;
+
+	if (id) {
+
+		const profile = await DeliveryUser.findById(id);
+
+		if(profile) {
+			profile.verified = status;
+
+			const result = await profile.save();
+
+			if(result) {
+				return res.status(200).json({ success: true, message: result });
+			}
+		}
+	}
+
+	return res.status(400).json({ success: true, message: "Could not verify delivery user." });
+}
+
+export const GetDeliveryUsers = async (req: Request, res: Response, next: NextFunction ) => {
+
+	const deliveryUsers = await DeliveryUser.find();
+	if (deliveryUsers) {
+		
+		return res.status(200).json({ success: true, message: deliveryUsers });
+	}
+
+	return res.status(400).json({ success: true, message: "Could not get delivery users." });
 }
